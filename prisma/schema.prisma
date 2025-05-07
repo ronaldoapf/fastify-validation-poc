@@ -35,10 +35,11 @@ enum TokenType {
 }
 
 model Token {
-  id     String    @id @default(uuid())
-  token  String    @unique
-  userId String
-  type   TokenType
+  id               String    @id @default(uuid())
+  token            String    @unique
+  userId           String
+  type             TokenType
+  hasBeenValidated Boolean   @default(false) @map("has_been_validated")
 
   expiresAt DateTime @map("expires_at")
 

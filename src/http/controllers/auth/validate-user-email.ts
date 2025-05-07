@@ -1,6 +1,7 @@
+import { makeValidateTokenUseCase } from '@/use-cases/factories/tokens/make-validate-token.use-case'
+import { makeGetUserUseCase } from '@/use-cases/factories/users/make-get-user.use-case'
+import { makeUpdateUserUseCase } from '@/use-cases/factories/users/make-update-user.use-case copy'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { PrismaTokensRepository } from '../../../repositories/prisma/prisma-tokens-repository'
-import { GetTokenUseCase } from '../../../use-cases/tokens/get-token'
 import { validateUserConfig } from './config'
 
 export const validateUserEmail: FastifyPluginAsyncZod = async app => {
@@ -10,10 +11,26 @@ export const validateUserEmail: FastifyPluginAsyncZod = async app => {
     async (request, reply) => {
       const { token } = request.query
 
-      const tokensRepository = new PrismaTokensRepository()
-      const tokenUseCase = new GetTokenUseCase(tokensRepository)
+      const validateTokenUseCase = makeValidateTokenUseCase()
 
-      const test = await tokenUseCase.execute({ token })
+      const validatedToken = await validateTokenUseCase.execute({ token })
+
+      const getUserUseCase = makeGetUserUseCase()
+
+      const { user } = await getUserUseCase.execute({
+        userId: validatedToken.token.userId,
+      })
+
+      await makeUpdateUserUseCase().execute({
+        userId: user.id,
+        data: {
+          isEmailVerified: true,
+        },
+      })
+
+      return reply.status(200).send({
+        message: 'Email validated successfully',
+      })
     }
   )
 }

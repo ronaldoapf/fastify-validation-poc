@@ -2,24 +2,24 @@ import type { Token } from '@prisma/client'
 import { isBefore } from 'date-fns'
 import type { TokensRepository } from '../../repositories/tokens-repository'
 
-type GetTokenUseCaseRequest = {
+type ValidateTokenUseCaseRequest = {
   token: string
 }
 
-type GetTokenUseCaseResponse = {
+type ValidateTokenUseCaseResponse = {
   token: Token
 }
 
-export class GetTokenUseCase {
+export class ValidateTokenUseCase {
   constructor(private tokensRepository: TokensRepository) {}
 
   async execute({
     token,
-  }: GetTokenUseCaseRequest): Promise<GetTokenUseCaseResponse> {
+  }: ValidateTokenUseCaseRequest): Promise<ValidateTokenUseCaseResponse> {
     const tokenExists = await this.tokensRepository.findByToken(token)
 
     if (!tokenExists) {
-      throw new Error('Token expired')
+      throw new Error('Token does not exist')
     }
 
     const { expiresAt } = tokenExists
